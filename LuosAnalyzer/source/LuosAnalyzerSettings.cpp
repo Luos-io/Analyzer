@@ -84,7 +84,7 @@ const char* LuosAnalyzerSettings::SaveSettings()
 	SimpleArchive text_archive;
 
 	text_archive << mTxChannel;
-	text_archive >> mRxChannel;
+	text_archive << mRxChannel;
 	text_archive << mBitRate;
 
 	return SetReturnString( text_archive.GetString() );
