@@ -70,7 +70,7 @@ void LuosAnalyzer::WorkerThread()
 
 	for( ; ; )
 	{
-		U64 label, data = 0;													//frames' info
+		U64 label=0, data = 0;													//frames' info
 		U64 value = 0, value_byte = 0;								//data & crc calculation helpers
 		U8 dd=0;																			//
 		U64 starting_sample = mTx->GetSampleNumber();	//points to the beginning of a frame
@@ -758,7 +758,7 @@ void LuosAnalyzer::WorkerThread()
 
 		for( ; ; )
 		{
-			U64 label, data = 0, received_data=0;							//frames' info
+			U64 label=0, data = 0, received_data=0;							//frames' info
 			U64 value = 0, value_byte = 0;										//data & crc calculation helpers
 			U8 dd=0, dd2=0;																		//
 			bool transmission_error = 0, noop=0;							//reset and collision notifiers
