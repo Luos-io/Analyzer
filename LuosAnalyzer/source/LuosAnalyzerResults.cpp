@@ -5,8 +5,9 @@
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sstream>
-#include <string>
+#include <string.h>
 
 
 std::stringstream ss;
@@ -49,20 +50,11 @@ void LuosAnalyzerResults::GenerateExportFile( const char* file, DisplayBase disp
 
 		char time_str[128];
 		AnalyzerHelpers::GetTimeString( frame.mStartingSampleInclusive, trigger_sample, sample_rate, time_str, 128 );
-		if (i==0) {
-			char number_str[128];
-			AnalyzerHelpers::GetNumberString( frame.mData1, ASCII, 8, number_str, 128 );
+		
+		char number_str[128];
+		AnalyzerHelpers::GetNumberString( frame.mData1, display_base, 8, number_str, 128 );
 
-			file_stream << time_str << "," << number_str << std::endl;
-
-		}
-		else {
-			char number_str[128];
-			AnalyzerHelpers::GetNumberString( frame.mData1, ASCII, 8, number_str, 128 );
-
-			file_stream << time_str << "," << number_str << std::endl;
-
-		}
+		file_stream << time_str << "," << number_str << std::endl;
 
 		if( UpdateExportProgressAndCheckForCancel( i, num_frames ) == true )
 		{
@@ -101,47 +93,38 @@ void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_bas
 	switch (frame_data1) {
 		case 'PROT': {
 			bit_num = 4;
-			strcpy(number_str, "PROTOCOL");
 			break;
 		}
 		case 'TRGT': {
 			bit_num = 12;
-			strcpy(number_str, "TARGET");
 			break;
 		}
 		case 'MODE': {
 			bit_num = 4;
-			strcpy(number_str, "TARGET MODE");
 			break;
 		}
 		case 'SRC': {
 			bit_num = 12;
-			strcpy(number_str, "SOURCE");
 			break;
 		}
 		case 'CMD': {
 			bit_num = 8;
-			strcpy(number_str, "CMD");
 			break;
 		}
 		case 'SIZE': {
 			bit_num = 16;
-			strcpy(number_str, "SIZE");
 			break;
 		}
 		case 'CRC': {
 			bit_num = 16;
-			strcpy(number_str, "CRC");
 			break;
 		}
 		case 'NOT': {
 			bit_num = 16;
-			strcpy(number_str, "CRC");
 			break;
 		}
 		default:{
 			bit_num = 8;
-			strcpy(number_str, "DATA");
 			break;
 		}
 	}
@@ -173,31 +156,31 @@ void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_bas
 	else if (frame_data1 == 'MODE') {
 		switch (frame_data2) {
 			case 0: {
-				ss << number_str << " = " << number_str2 << " ID";
+				ss << "TARGET MODE = " << number_str2 << " ID";
 				break;
 			}
 			case 1: {
-				ss << number_str << " = " << number_str2 << " IDACK";
+				ss << "TARGET MODE = " << number_str2 << " IDACK";
 				break;
 			}
 			case 2: {
-				ss << number_str << " = " << number_str2 << " TYPE";
+				ss << "TARGET MODE = " << number_str2 << " TYPE";
 				break;
 			}
 			case 3: {
-				ss << number_str << " = " << number_str2 << " BROADCAST";
+				ss << "TARGET MODE = " << number_str2 << " BROADCAST";
 				break;
 			}
 			case 4: {
-				ss << number_str << " = " << number_str2 << " MULTICAST";
+				ss << "TARGET MODE = " << number_str2 << " MULTICAST";
 				break;
 			}
 			case 5: {
-				ss << number_str << " = " << number_str2 << " NODEID";
+				ss << "TARGET MODE = " << number_str2 << " NODEID";
 				break;
 			}
 			case 6: {
-				ss << number_str << " = " << number_str2 << "  NODEIDACK";
+				ss << "TARGET MODE = " << number_str2 << "  NODEIDACK";
 				break;
 			}
 		}
@@ -205,250 +188,259 @@ void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_bas
 	else if (frame_data1 == 'CMD') {
 		switch (frame_data2) {
 			case 0: {
-				ss << number_str << " = " << number_str2 << " WRITE_NODE_ID";
+				ss << "CMD = " << number_str2 << " WRITE_NODE_ID";
 				break;
 			}
 			case 1: {
-				ss << number_str << " = " << number_str2 << " RESET_DETECTION";
+				ss << "CMD = " << number_str2 << " RESET_DETECTION";
 				break;
 			}
 			case 2: {
-				ss << number_str << " = " << number_str2 << " SET_BAUDRATE";
+				ss << "CMD = " << number_str2 << " SET_BAUDRATE";
 				break;
 			}
 			case 3: {
-				ss << number_str << " = " << number_str2 << " ASSERT";
+				ss << "CMD = " << number_str2 << " ASSERT";
 				break;
 			}
 			case 4: {
-				ss << number_str << " = " << number_str2 << " RTB_CMD";
+				ss << "CMD = " << number_str2 << " RTB_CMD";
 				break;
 			}
 			case 5: {
-				ss << number_str << " = " << number_str2 << " WRITE_ALIAS";
+				ss << "CMD = " << number_str2 << " WRITE_ALIAS";
 				break;
 			}
 			case 6: {
-				ss << number_str << " = " << number_str2 << " UPDATE_PUB";
+				ss << "CMD = " << number_str2 << " UPDATE_PUB";
 				break;
 			}
 			case 7: {
-				ss << number_str << " = " << number_str2 << " NODE_UUID";
+				ss << "CMD = " << number_str2 << " NODE_UUID";
 				break;
 			}
 			case 8: {
-				ss << number_str << " = " << number_str2 << " REVISION";
+				ss << "CMD = " << number_str2 << " REVISION";
 				break;
 			}
 			case 9: {
-				ss << number_str << " = " << number_str2 << " LUOS_REVISION";
+				ss << "CMD = " << number_str2 << " LUOS_REVISION";
 				break;
 			}
 			case 10: {
-				ss << number_str << " = " << number_str2 << " LUOS_STATISTICS";
+				ss << "CMD = " << number_str2 << " LUOS_STATISTICS";
 				break;
 			}
 			case 11: {
-				ss << number_str << " = " << number_str2 << " ASK_PUB_CMD";
+				ss << "CMD = " << number_str2 << " ASK_PUB_CMD";
 				break;
 			}
 			case 12: {
-				ss << number_str << " = " << number_str2 << " COLOR";
+				ss << "CMD = " << number_str2 << " COLOR";
 				break;
 			}
 			case 13: {
-				ss << number_str << " = " << number_str2 << " COMPLIANT";
+				ss << "CMD = " << number_str2 << " COMPLIANT";
 				break;
 			}
 			case 14: {
-				ss << number_str << " = " << number_str2 << " IO_STATE";
+				ss << "CMD = " << number_str2 << " IO_STATE";
 				break;
 			}
 			case 15: {
-				ss << number_str << " = " << number_str2 << " RATIO";
+				ss << "CMD = " << number_str2 << " RATIO";
 				break;
 			}
 			case 16: {
-				ss << number_str << " = " << number_str2 << " PEDOMETER";
+				ss << "CMD = " << number_str2 << " PEDOMETER";
 				break;
 			}
 			case 17: {
-				ss << number_str << " = " << number_str2 << " ILLUMINANCE";
+				ss << "CMD = " << number_str2 << " ILLUMINANCE";
 				break;
 			}
 			case 18: {
-				ss << number_str << " = " << number_str2 << " VOLTAGE";
+				ss << "CMD = " << number_str2 << " VOLTAGE";
 				break;
 			}
 			case 19: {
-				ss << number_str << " = " << number_str2 << " CURRENT";
+				ss << "CMD = " << number_str2 << " CURRENT";
 				break;
 			}
 			case 20: {
-				ss << number_str << " = " << number_str2 << " POWER";
+				ss << "CMD = " << number_str2 << " POWER";
 				break;
 			}
 			case 21: {
-				ss << number_str << " = " << number_str2 << " TEMPERATURE";
+				ss << "CMD = " << number_str2 << " TEMPERATURE";
 				break;
 			}
 			case 22: {
-				ss << number_str << " = " << number_str2 << " TIME";
+				ss << "CMD = " << number_str2 << " TIME";
 				break;
 			}
 			case 23: {
-				ss << number_str << " = " << number_str2 << " FORCE";
+				ss << "CMD = " << number_str2 << " FORCE";
 				break;
 			}
 			case 24: {
-				ss << number_str << " = " << number_str2 << " MOMENT";
+				ss << "CMD = " << number_str2 << " MOMENT";
 				break;
 			}
 			case 25: {
-				ss << number_str << " = " << number_str2 << " CONTROL";
+				ss << "CMD = " << number_str2 << " CONTROL";
 				break;
 			}
 			case 26: {
-				ss << number_str << " = " << number_str2 << " REGISTER";
+				ss << "CMD = " << number_str2 << " REGISTER";
 				break;
 			}
 			case 27: {
-				ss << number_str << " = " << number_str2 << " REINIT";
+				ss << "CMD = " << number_str2 << " REINIT";
 				break;
 			}
 			case 28: {
-				ss << number_str << " = " << number_str2 << " PID";
+				ss << "CMD = " << number_str2 << " PID";
 				break;
 			}
 			case 29: {
-				ss << number_str << " = " << number_str2 << " RESOLUTION";
+				ss << "CMD = " << number_str2 << " RESOLUTION";
 				break;
 			}
 			case 30: {
-				ss << number_str << " = " << number_str2 << " REDUCTION";
+				ss << "CMD = " << number_str2 << " REDUCTION";
 				break;
 			}
 			case 31: {
-				ss << number_str << " = " << number_str2 << " DIMENSION";
+				ss << "CMD = " << number_str2 << " DIMENSION";
 				break;
 			}
 			case 32: {
-				ss << number_str << " = " << number_str2 << " OFFSET";
+				ss << "CMD = " << number_str2 << " OFFSET";
 				break;
 			}
 			case 33: {
-				ss << number_str << " = " << number_str2 << " SETID";
+				ss << "CMD = " << number_str2 << " SETID";
 				break;
 			}
 			case 34: {
-				ss << number_str << " = " << number_str2 << " ANGULAR_POSITION";
+				ss << "CMD = " << number_str2 << " ANGULAR_POSITION";
 				break;
 			}
 			case 35: {
-				ss << number_str << " = " << number_str2 << " ANGULAR_SPEED";
+				ss << "CMD = " << number_str2 << " ANGULAR_SPEED";
 				break;
 			}
 			case 36: {
-				ss << number_str << " = " << number_str2 << " LINEAR_POSITION";
+				ss << "CMD = " << number_str2 << " LINEAR_POSITION";
 				break;
 			}
 			case 37: {
-				ss << number_str << " = " << number_str2 << " LINEAR_SPEED";
+				ss << "CMD = " << number_str2 << " LINEAR_SPEED";
 				break;
 			}
 			case 38: {
-				ss << number_str << " = " << number_str2 << " ACCEL_3D";
+				ss << "CMD = " << number_str2 << " ACCEL_3D";
 				break;
 			}
 			case 39: {
-				ss << number_str << " = " << number_str2 << " GYRO_3D";
+				ss << "CMD = " << number_str2 << " GYRO_3D";
 				break;
 			}
 			case 40: {
-				ss << number_str << " = " << number_str2 << " QUATERNION";
+				ss << "CMD = " << number_str2 << " QUATERNION";
 				break;
 			}
 			case 41: {
-				ss << number_str << " = " << number_str2 << " COMPASS_3D";
+				ss << "CMD = " << number_str2 << " COMPASS_3D";
 				break;
 			}
 			case 42: {
-				ss << number_str << " = " << number_str2 << " EULER_3D";
+				ss << "CMD = " << number_str2 << " EULER_3D";
 				break;
 			}
 			case 43: {
-				ss << number_str << " = " << number_str2 << " ROT_MAT";
+				ss << "CMD = " << number_str2 << " ROT_MAT";
 				break;
 			}
 			case 44: {
-				ss << number_str << " = " << number_str2 << " LINEAR_ACCEL";
+				ss << "CMD = " << number_str2 << " LINEAR_ACCEL";
 				break;
 			}
 			case 45: {
-				ss << number_str << " = " << number_str2 << " GRAVITY_VECTOR";
+				ss << "CMD = " << number_str2 << " GRAVITY_VECTOR";
 				break;
 			}
 			case 46: {
-				ss << number_str << " = " << number_str2 << " HEADING";
+				ss << "CMD = " << number_str2 << " HEADING";
 				break;
 			}
 			case 47: {
-				ss << number_str << " = " << number_str2 << " ANGULAR_POSITION_LIMIT";
+				ss << "CMD = " << number_str2 << " ANGULAR_POSITION_LIMIT";
 				break;
 			}
 			case 48: {
-				ss << number_str << " = " << number_str2 << " LINEAR_POSITION_LIMIT";
+				ss << "CMD = " << number_str2 << " LINEAR_POSITION_LIMIT";
 				break;
 			}
 			case 49: {
-				ss << number_str << " = " << number_str2 << " RATIO_LIMIT";
+				ss << "CMD = " << number_str2 << " RATIO_LIMIT";
 				break;
 			}
 			case 50: {
-				ss << number_str << " = " << number_str2 << " CURRENT_LIMIT";
+				ss << "CMD = " << number_str2 << " CURRENT_LIMIT";
 				break;
 			}
 			case 51: {
-				ss << number_str << " = " << number_str2 << " ANGULAR_SPEED_LIMIT";
+				ss << "CMD = " << number_str2 << " ANGULAR_SPEED_LIMIT";
 				break;
 			}
 			case 52: {
-				ss << number_str << " = " << number_str2 << " LINEAR_SPEED_LIMIT";
+				ss << "CMD = " << number_str2 << " LINEAR_SPEED_LIMIT";
 				break;
 			}
 			case 53: {
-				ss << number_str << " = " << number_str2 << " TORQUE_LIMIT";
+				ss << "CMD = " << number_str2 << " TORQUE_LIMIT";
 				break;
 			}
 			case 54: {
-				ss << number_str << " = " << number_str2 << " DXL_WHEELMODE";
+				ss << "CMD = " << number_str2 << " DXL_WHEELMODE";
 				break;
 			}
 			case 55: {
-				ss << number_str << " = " << number_str2 << " HANDY_SET_POSITION";
+				ss << "CMD = " << number_str2 << " HANDY_SET_POSITION";
 				break;
 			}
 			case 56: {
-				ss << number_str << " = " << number_str2 << " PARAMETERS";
+				ss << "CMD = " << number_str2 << " PARAMETERS";
 				break;
 			}
 			case 57: {
-				ss << number_str << " = " << number_str2 << " LUOS_PROTOCOL_NB";
+				ss << "CMD = " << number_str2 << " LUOS_PROTOCOL_NB";
 				break;
 			}
 		}
 	}
 	else if (frame_data1 == 'NOT') {
-		ss << number_str << " = " << number_str2 << " - NOT GOOD";
+		ss << "CRC = " << number_str2 << " - NOT GOOD";
 	}
 	else if (frame_data1 == 'CRC') {
-		ss <<number_str << " = " << number_str2 << " - GOOD";
+		ss << "CRC = " << number_str2 << " - GOOD";
 	}
-	else if (strcmp(number_str, "DATA")==0) {
-		ss << number_str << "[" << frame_data1 << "] = " << number_str2;
+	else if (frame_data1 == 'TRGT') {
+		ss << "TARGET = " << number_str2;
+	}
+	else if (frame_data1 == 'SRC') {
+		ss << "SOURCE = " << number_str2;
+	}
+	else if (frame_data1 == 'PROT') {
+	ss << "PROTOCOL = " << number_str2;
+	}
+	else if (frame_data1 == 'SIZE') {
+	ss << "SIZE = " << number_str2;
 	}
 	else {
-		ss << number_str << " = " << number_str2;
+	ss << "DATA[" << frame_data1 << "] = " << number_str2;
 	}
 }
 

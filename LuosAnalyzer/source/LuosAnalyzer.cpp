@@ -1814,7 +1814,7 @@ void LuosAnalyzer::WorkerThread()
 								}
 								else
 								{
-									mRx->Advance(1);
+									//mRx->Advance(1);
 									if( mTx->GetBitState() == BIT_LOW )
 									{
 										mTx->AdvanceToNextEdge();
@@ -1907,11 +1907,11 @@ void LuosAnalyzer::WorkerThread()
 						mTx->AdvanceToNextEdge();
 					if (!noop) {				//Normally, in Tx msg Rx is left behind, so we advance to the next msg
 						mRx->AdvanceToNextEdge();
-						mRx->Advance( samples_to_first_center_of_first_data_bit );
+						
 					}
-					if (mRx->GetSampleNumber() < mTx->GetSampleNumber())		//data found in Rx? ->Rx msg
+					if ( mTx->GetSampleNumber() >= mRx->GetSampleNumber())		//data found in Rx? ->Rx msg
 					{
-						if (mTx->GetSampleNumber() - mRx->GetSampleNumber()  < timeout*samples_per_bit)		//Data found in Tx also -> collision
+						if (mTx->GetSampleNumber() - mRx->GetSampleNumber()  <= timeout*samples_per_bit)		//Data found in Tx also -> collision
 							collision_detection = 1;
 						else collision_detection = 0;
 
@@ -1919,6 +1919,7 @@ void LuosAnalyzer::WorkerThread()
 						starting_sample+=samples_per_bit;
 						if( mRx->GetBitState() == BIT_LOW )		//reset
 						{
+							mRx->Advance( samples_to_first_center_of_first_data_bit );
 							state=PROTOCOL;
 							break;
 					 	}
@@ -1936,6 +1937,7 @@ void LuosAnalyzer::WorkerThread()
 						starting_sample+=samples_per_bit;
 						if( mTx->GetBitState() == BIT_LOW )
 						{
+							mRx->Advance( samples_to_first_center_of_first_data_bit );
 							state=PROTOCOL;
 							break;
 						}
