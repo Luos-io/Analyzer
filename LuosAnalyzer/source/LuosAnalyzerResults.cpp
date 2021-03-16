@@ -26,6 +26,7 @@ LuosAnalyzerResults::~LuosAnalyzerResults()
 void LuosAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, DisplayBase display_base )
 {
 	ClearResultStrings();
+	ss.str(std::string());
 
 	Frame frame = GetFrame( frame_index );
 
@@ -72,6 +73,7 @@ void LuosAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase
 	Frame frame = GetFrame( frame_index );
 
 	ClearTabularText();
+	ss.str(std::string());
 
 	DataTranslation(frame.mData1, frame.mData2, display_base);
 
@@ -419,6 +421,7 @@ void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_bas
 				ss << "CMD = " << number_str2 << " LUOS_PROTOCOL_NB";
 				break;
 			}
+			default: break;
 		}
 	}
 	else if (frame_data1 == 'NOT') {
@@ -442,6 +445,7 @@ void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_bas
 	else {
 	ss << "DATA[" << frame_data1 << "] = " << number_str2;
 	}
+
 }
 
 void LuosAnalyzerResults::GeneratePacketTabularText( U64 packet_id, DisplayBase display_base )
