@@ -1,2 +1,2 @@
 # Analyzer
-A Luos protocol analyser for Saleae Logic
+A Luos protocol analyzer for Saleae Logic
