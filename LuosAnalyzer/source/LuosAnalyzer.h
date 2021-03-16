@@ -50,7 +50,7 @@ typedef enum { PROTOCOL,
 							 DATA,
 						 	 CRC,
 						   ACK,
-						 	 WAIT };
+						 	 WAIT }pos_state;
 
 
 extern "C" ANALYZER_EXPORT const char* __cdecl GetAnalyzerName();
