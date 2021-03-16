@@ -998,6 +998,7 @@ void LuosAnalyzer::WorkerThread()
 							//calculate target id in Rx - lsb first inversion
 							if( mRx->GetBitState() == BIT_HIGH ) {
 								value = 1;
+								value_byte = 1;
 								for (U32 j=0; j<i; j++) {
 									value *=2;
 								}
@@ -1137,6 +1138,12 @@ void LuosAnalyzer::WorkerThread()
 						bit_counter=0;
 						break;
 					}
+					if (!Rx_msg && received_data != data) {
+						collision_detection = 1; 
+						Rx_msg = 1;
+						data_byte = (uint8_t)received_data;
+						data = received_data;
+					}
 					//when target = IDACK | NODEIDACK, ack notifier is ON
 					if ( data==1 || data==6 ) {
 						ack=1;
@@ -1247,6 +1254,32 @@ void LuosAnalyzer::WorkerThread()
 									dd += value;
 								}
 								data += value;
+							}
+							if (mTx->GetBitState() == BIT_HIGH) {
+								value = 1;
+								value_byte = 1;
+								for (U32 j = 0; j < i; j++) {
+									value *= 2;
+								}
+								if (!first_byte)
+								{
+									for (U32 j = 0; j < i - 4; j++)
+									{
+										value_byte *= 2;
+									}
+									dd2 += value_byte;
+								}
+								else {
+									dd2 += value;
+								}
+								received_data += value;
+							}
+
+							if (!Rx_msg && received_data != data) {
+								collision_detection = 1;
+								Rx_msg = 1;
+								data = received_data;
+								dd = dd2;
 							}
 							label = 'SRC';
 							mTx->Advance( samples_per_bit);
@@ -1590,14 +1623,14 @@ void LuosAnalyzer::WorkerThread()
 					starting_sample += (uint64_t)samples_per_bit*2 - samples_per_bit/2;
 					if (Rx_msg)	//msg in Rx
 					{
-						mRx->AdvanceToNextEdge();
-						mRx->Advance( samples_to_first_center_of_first_data_bit );
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
 							state = WAIT;
 							noop = 1;
 							break;
 						}
+						mRx->AdvanceToNextEdge();
+						mRx->Advance( samples_to_first_center_of_first_data_bit );
 
 						bit_counter = 0;
 						for (U32 i=0; i<16; i++)
@@ -1849,18 +1882,18 @@ void LuosAnalyzer::WorkerThread()
 			if (collision_detection && Rx_msg && state == WAIT) {			//end of message
 				ack = 0;
 			}
-
-			Frame frame;
-			frame.mData1 = label;
-			frame.mData2 = data;
-			frame.mFlags = 0;
-			frame.mStartingSampleInclusive = starting_sample;
-
-			if (Rx_msg)
-				frame.mEndingSampleInclusive = mRx->GetSampleNumber() - samples_per_bit/2;
-			else
-				frame.mEndingSampleInclusive = mTx->GetSampleNumber() - samples_per_bit/2;
 			if (!noop) {			//if noop=1 ->send no frame
+				Frame frame;
+				frame.mData1 = label;
+				frame.mData2 = data;
+				frame.mFlags = 0;
+				frame.mStartingSampleInclusive = starting_sample;
+
+				if (Rx_msg)
+					frame.mEndingSampleInclusive = mRx->GetSampleNumber() - samples_per_bit/2;
+				else
+					frame.mEndingSampleInclusive = mTx->GetSampleNumber() - samples_per_bit/2;
+			
 				mResults->AddFrame( frame );
 				mResults->CommitResults();
 				ReportProgress( frame.mEndingSampleInclusive );
