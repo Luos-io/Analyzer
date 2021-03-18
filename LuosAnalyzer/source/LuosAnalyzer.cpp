@@ -56,7 +56,7 @@ void LuosAnalyzer::WorkerThread()
 	U16 bit_counter = 0;
 	U8 data_byte = 0;
 	U16 size = 0, data_idx = 0, target = 0, source = 0, timer = 0;
-	bool ack = 0, found_ack = 0, ack_done = 0, Rx_msg = 0, collision_detection = 0, first_byte = 0;
+	bool ack = 0, found_ack = 0, ack_done = 0, Rx_msg = 0, collision_detection = 0, first_byte = 0, noop = 0;
 
 	U64 tracking = 0;
 
@@ -96,6 +96,7 @@ void LuosAnalyzer::WorkerThread()
 				}
 
 				data_byte = 0;
+				data_idx = 0;
 				crc_val = 0xFFFF; 	//initial value of crc
 				starting_sample += samples_per_bit; 	//skip the start bit
 				for (U32 i = 0; i < 4; i++)
@@ -772,12 +773,12 @@ void LuosAnalyzer::WorkerThread()
 		}
 		else Rx_msg = 0;
 
-		for (; ; )
+		for ( ; ; )
 		{
 			U64 label = 0, data = 0, received_data = 0;							//frames' info
 			U64 value = 0, value_byte = 0;										//data & crc calculation helpers
 			U8 dd = 0, dd2 = 0;																		//
-			bool transmission_error = 0, noop = 0;							//reset and collision notifiers
+			bool transmission_error = 0;					//reset and collision notifiers
 			U64 starting_sample = 0;														//points to the beginning of a frame
 
 			//if Rx is 1 then msg in Rx, else msg in Tx
@@ -793,6 +794,8 @@ void LuosAnalyzer::WorkerThread()
 			{
 
 				data_byte = 0;
+				data_idx = 0;
+				noop = 0;
 				ack = 0;
 				bit_counter = 0;
 				crc_val = 0xFFFF;											//crc initial value
@@ -822,7 +825,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							break;
 						}
 						mResults->AddMarker(mRx->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mRxChannel);
@@ -847,7 +850,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						//let's put a dot exactly where we sample this bit:
@@ -882,7 +885,7 @@ void LuosAnalyzer::WorkerThread()
 					state = WAIT;
 					noop = 1;
 					bit_counter = 0;
-					transmission_error = 0;
+					//transmission_error = 0;
 					break;
 				}
 				//if data in Tx and Rx not equal -> collision detection
@@ -898,18 +901,6 @@ void LuosAnalyzer::WorkerThread()
 			case TARGET:
 			{
 				starting_sample -= samples_per_bit / 2;
-				if (Rx_msg && !mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-					transmission_error = 1;
-					noop = 1;
-					state = WAIT;
-					break;
-				}
-				else if (!Rx_msg && !mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-					transmission_error = 1;
-					noop = 1;
-					state = WAIT;
-					break;
-				}
 
 				for (U32 i = 0; i < 12; i++)
 				{
@@ -920,8 +911,18 @@ void LuosAnalyzer::WorkerThread()
 						ComputeCRC(data_byte);
 						if (!Rx_msg)				//when data exist in channel Tx, move the Tx pointer
 						{
+							if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
+								transmission_error = 1;
+								//mTx->AdvanceToNextEdge();
+								break;
+							}
 							mTx->AdvanceToNextEdge();
 							mTx->Advance(samples_to_first_center_of_first_data_bit);
+						}
+						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
+							transmission_error = 1;
+							//mRx->AdvanceToNextEdge();
+							break;
 						}
 						mRx->AdvanceToNextEdge();
 						mRx->Advance(samples_to_first_center_of_first_data_bit);
@@ -935,7 +936,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							break;
 						}
 						if (collision_detection)		//if collision ad an errorX to Tx
@@ -947,7 +948,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mTxChannel);
@@ -1030,7 +1031,7 @@ void LuosAnalyzer::WorkerThread()
 				//reset
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
+					//transmission_error = 0;
 					noop = 1;
 					break;
 				}
@@ -1076,7 +1077,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							break;
 						}
 						if (collision_detection)
@@ -1102,7 +1103,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mTxChannel);
@@ -1133,7 +1134,7 @@ void LuosAnalyzer::WorkerThread()
 				//reset
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
+					//transmission_error = 0;
 					noop = 1;
 					bit_counter = 0;
 					break;
@@ -1155,22 +1156,6 @@ void LuosAnalyzer::WorkerThread()
 			case SOURCE:
 			{
 				starting_sample -= samples_per_bit / 2;
-				if (Rx_msg) {
-					if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-						transmission_error = 1;
-						state = WAIT;
-						noop = 1;
-						break;
-					}
-				}
-				else {
-					if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-						transmission_error = 1;
-						state = WAIT;
-						noop = 1;
-						break;
-					}
-				}
 				for (U32 i = 0; i < 12; i++)
 				{
 					//if 8 bits are sampled, skip the stop and start bit
@@ -1180,8 +1165,18 @@ void LuosAnalyzer::WorkerThread()
 						ComputeCRC(data_byte);
 						if (!Rx_msg)	//when data in Tx, move Tx pointer
 						{
+							if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
+								transmission_error = 1;
+								//mTx->AdvanceToNextEdge();
+								break;
+							}
 							mTx->AdvanceToNextEdge();
 							mTx->Advance(samples_to_first_center_of_first_data_bit);
+						}
+						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
+							transmission_error = 1;
+							//mRx->AdvanceToNextEdge();
+							break;
 						}
 						mRx->AdvanceToNextEdge();
 						mRx->Advance(samples_to_first_center_of_first_data_bit);
@@ -1196,7 +1191,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							break;
 						}
 						if (collision_detection)	//error X
@@ -1230,7 +1225,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mTxChannel);
@@ -1289,7 +1284,7 @@ void LuosAnalyzer::WorkerThread()
 				//reset
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
+					//transmission_error = 0;
 					noop = 1;
 					break;
 				}
@@ -1338,7 +1333,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							break;
 						}
 						if (collision_detection) //error X
@@ -1361,7 +1356,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mTxChannel);
@@ -1383,7 +1378,7 @@ void LuosAnalyzer::WorkerThread()
 					mTx->AdvanceToAbsPosition(mRx->GetSampleNumber());
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
+					//transmission_error = 0;
 					noop = 1;
 					break;
 				}
@@ -1442,7 +1437,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							break;
 						}
 						if (collision_detection)
@@ -1475,7 +1470,7 @@ void LuosAnalyzer::WorkerThread()
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::Dot, mSettings->mTxChannel);
@@ -1507,7 +1502,7 @@ void LuosAnalyzer::WorkerThread()
 					mTx->AdvanceToAbsPosition(mRx->GetSampleNumber());
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
+					//transmission_error = 0;
 					noop = 1;
 					break;
 				}
@@ -1539,7 +1534,7 @@ void LuosAnalyzer::WorkerThread()
 					{
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							transmission_error = 1;
 							break;
 						}
@@ -1578,7 +1573,7 @@ void LuosAnalyzer::WorkerThread()
 					{
 						//if the time between the current moment and the last transition is more than timeout -> reset
 						if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							transmission_error = 1;
 							break;
 						}
@@ -1603,7 +1598,7 @@ void LuosAnalyzer::WorkerThread()
 					mTx->AdvanceToAbsPosition(mRx->GetSampleNumber());
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
+					//transmission_error = 0;
 					noop = 1;
 					data_idx = 0;
 					break;
@@ -1636,7 +1631,7 @@ void LuosAnalyzer::WorkerThread()
 					for (U32 i = 0; i < 16; i++)
 					{
 						if ((!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) && i <= 8) {
-							mRx->AdvanceToNextEdge();
+							//mRx->AdvanceToNextEdge();
 							ack = 0;
 							transmission_error = 1;
 							break;
@@ -1703,7 +1698,7 @@ void LuosAnalyzer::WorkerThread()
 
 						if ((!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) && i <= 8) {		//if no data for timeout period - error
 							transmission_error = 1;
-							mTx->AdvanceToNextEdge();
+							//mTx->AdvanceToNextEdge();
 							break;
 						}
 						if (bit_counter == 8)  //if 8 bits sampled, skip Start and Stop bit
@@ -1752,7 +1747,6 @@ void LuosAnalyzer::WorkerThread()
 					mTx->AdvanceToAbsPosition(mRx->GetSampleNumber());			//Tx reach the position of Rx
 				if (transmission_error) {
 					state = WAIT;
-					transmission_error = 0;
 					noop = 1;
 					break;
 				}
@@ -1765,7 +1759,6 @@ void LuosAnalyzer::WorkerThread()
 				}
 				if (ack == 0)
 					state = WAIT;
-
 
 				bit_counter = 0;
 				break;
@@ -1841,6 +1834,7 @@ void LuosAnalyzer::WorkerThread()
 					}
 					else	//ack to Rx channel
 					{
+						mRx->AdvanceToAbsPosition(mTx->GetSampleNumber());
 						mRx->AdvanceToNextEdge();
 						mRx->Advance(samples_to_first_center_of_first_data_bit);	//find ack position
 						starting_sample = mRx->GetSampleNumber() - (samples_per_bit / 2);
@@ -1866,6 +1860,10 @@ void LuosAnalyzer::WorkerThread()
 							mTx->AdvanceToAbsPosition(mRx->GetSampleNumber());			//Tx reach the position of Rx
 					}
 				}
+				
+				if (!Rx_msg && mRx->GetSampleNumber() < mTx->GetSampleNumber())
+					mRx->AdvanceToAbsPosition(mTx->GetSampleNumber());
+
 				mResults->AddMarker(tracking, AnalyzerResults::Stop, mSettings->mTxChannel);
 				mResults->AddMarker(tracking, AnalyzerResults::Stop, mSettings->mRxChannel);
 				state = WAIT;
@@ -1909,54 +1907,27 @@ void LuosAnalyzer::WorkerThread()
 					{
 						if (Rx_msg)
 						{
-							tracking = mRx->GetSampleNumber();
-							mRx->AdvanceToNextEdge();
-							//in case Tx is left in the previous msg
 							if ((mRx->GetSampleNumber() > mTx->GetSampleNumber()) && (mRx->GetSampleNumber() - mTx->GetSampleNumber() > timeout * samples_per_bit))
 								mTx->AdvanceToNextEdge();
-							if (mRx->GetSampleNumber() - tracking > timeout * samples_per_bit)	//when no data for timeout seconds
-							{
+							if (!mRx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
+								
+								mRx->AdvanceToNextEdge();
+								if ((mRx->GetSampleNumber() > mTx->GetSampleNumber()) && (mRx->GetSampleNumber() - mTx->GetSampleNumber() > timeout * samples_per_bit)) {
+									while (mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit))
+										mTx->AdvanceToNextEdge();
+									mTx->AdvanceToNextEdge();
+								}
+									
 								if (mRx->GetSampleNumber() < mTx->GetSampleNumber()) {			//if we found a msg in Rx earlier Rx_msg
 									if (mTx->GetSampleNumber() - mRx->GetSampleNumber() < timeout * samples_per_bit)	//if we also have a Tx msg close to Rx ->collision
 										collision_detection = 1;
 									else collision_detection = 0;
-									Rx_msg = 1;
+										Rx_msg = 1;
 								}
 								else
 									Rx_msg = 0;
 								state = PROTOCOL;			//Restart
-								//if (!noop)
-								mRx->Advance(samples_to_first_center_of_first_data_bit);
-								bit_counter = 0;
-								ack = 0;
-								found_ack = 0;
-								break;
-							}
-							else {		//error msg still hasnt finished - loop again
-								state = WAIT;
-								continue;
-							}
-						}
-						else			//same for Tx msg
-						{
-							tracking = mTx->GetSampleNumber();
-
-							mTx->AdvanceToNextEdge();
-							if (mRx->GetSampleNumber() < mTx->GetSampleNumber())
-								mRx->AdvanceToNextEdge();
-
-							if (mTx->GetSampleNumber() - tracking > timeout * samples_per_bit)
-							{
-								if (mRx->GetSampleNumber() < mTx->GetSampleNumber()) {
-									if (mTx->GetSampleNumber() - mRx->GetSampleNumber() < timeout * samples_per_bit)
-										collision_detection = 1;
-									else collision_detection = 0;
-									Rx_msg = 1;
-								}
-								else
-									Rx_msg = 0;
-
-								state = PROTOCOL;
+								
 								//if (!noop)
 								mRx->Advance(samples_to_first_center_of_first_data_bit);
 								bit_counter = 0;
@@ -1966,13 +1937,49 @@ void LuosAnalyzer::WorkerThread()
 							}
 							else {
 								state = WAIT;
+								mRx->AdvanceToNextEdge();
+								continue;
+							}
+						}
+						else			//same for Tx msg
+						{
+							if (mRx->GetSampleNumber() < mTx->GetSampleNumber())
+								mRx->AdvanceToNextEdge();
+							if (!mTx->WouldAdvancingCauseTransition(timeout*samples_per_bit)) {
+								mTx->AdvanceToNextEdge();
+					
+								if (mRx->GetSampleNumber() < mTx->GetSampleNumber()) {
+									if (mTx->GetSampleNumber() - mRx->GetSampleNumber() < timeout * samples_per_bit)
+										collision_detection = 1;
+									else collision_detection = 0;
+									Rx_msg = 1;
+								}
+								else {
+									Rx_msg = 0;
+								}
+								state = PROTOCOL;
+								//if (!noop)
+								mRx->Advance(samples_to_first_center_of_first_data_bit);
+								
+								bit_counter = 0;
+								ack = 0;
+								found_ack = 0;
+								break;
+							}
+							else {
+								state = WAIT;
+								mTx->AdvanceToNextEdge();
 								continue;
 							}
 						}
 					}
 					//Initialization of the next message - Reset state machine
-					if (!Rx_msg)
+					if (!Rx_msg) {
+						if (mRx->GetSampleNumber() < mTx->GetSampleNumber() && mTx->GetSampleNumber() - mRx->GetSampleNumber() > timeout * samples_per_bit)
+							mRx->AdvanceToAbsPosition(mTx->GetSampleNumber());
 						mTx->AdvanceToNextEdge();
+						
+					}
 					if (!noop && !collision_detection) {				//Normally, in Tx msg Rx is left behind, so we advance to the next msg
 						mRx->AdvanceToNextEdge();
 					}
