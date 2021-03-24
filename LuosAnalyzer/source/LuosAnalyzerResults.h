@@ -29,7 +29,7 @@ protected:  //vars
 	LuosAnalyzer* mAnalyzer;
 };
 
-void DataTranslation( U64 frame_data1, U64 frame_data2, DisplayBase display_base );
+
 
 
 #endif //LUOS_ANALYZER_RESULTS

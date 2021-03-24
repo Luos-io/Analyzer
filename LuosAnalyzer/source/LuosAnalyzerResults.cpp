@@ -10,7 +10,7 @@
 #include <string.h>
 
 
-std::stringstream ss;
+
 
 LuosAnalyzerResults::LuosAnalyzerResults( LuosAnalyzer* analyzer, LuosAnalyzerSettings* settings )
 :	AnalyzerResults(),
@@ -23,13 +23,16 @@ LuosAnalyzerResults::~LuosAnalyzerResults()
 {
 }
 
+std::stringstream DataTranslation(U64 frame_data1, U64 frame_data2, DisplayBase display_base);
+
 void LuosAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, DisplayBase display_base )
 {
 	ClearResultStrings();
+	std::stringstream ss;
 
 	Frame frame = GetFrame( frame_index );
 
-	DataTranslation(frame.mData1, frame.mData2, display_base);
+	ss = DataTranslation(frame.mData1, frame.mData2, display_base);
 
 	AddResultString( ss.str().c_str() );
 }
@@ -70,10 +73,11 @@ void LuosAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase
 {
 #ifdef SUPPORTS_PROTOCOL_SEARCH
 	Frame frame = GetFrame( frame_index );
+	std::stringstream ss;
 
 	ClearTabularText();
 
-	DataTranslation(frame.mData1, frame.mData2, display_base);
+	ss = DataTranslation(frame.mData1, frame.mData2, display_base);
 
 	AddTabularText( ss.str().c_str() );
 
@@ -81,9 +85,9 @@ void LuosAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase
 }
 
 
-void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_base) {
+std::stringstream DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_base) {
 
-	ss.str(std::string());
+	std::stringstream ss;
 	char number_str[128];
 	char number_str2[128];
 	U32 bit_num=8;
@@ -442,6 +446,8 @@ void DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_bas
 	else {
 	ss << "DATA[" << frame_data1 << "] = " << number_str2;
 	}
+
+	return ss;
 }
 
 void LuosAnalyzerResults::GeneratePacketTabularText( U64 packet_id, DisplayBase display_base )
