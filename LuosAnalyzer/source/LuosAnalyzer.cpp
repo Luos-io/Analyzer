@@ -48,22 +48,20 @@ void LuosAnalyzer::WorkerThread()
 	if (mTx->GetBitState() == BIT_LOW)
 		mTx->AdvanceToNextEdge();
 
-	//Timeout = 2*10*(1sec/baudrate)
+	
 
 
 	U32 samples_per_bit = mSampleRateHz / (mSettings->mBitRate);
-	U32 samples_to_first_center_of_first_data_bit = U32(1.5 * double(mSampleRateHz) / double(mSettings->mBitRate));
-	U16 bit_counter = 0;
-	U8 data_byte = 0;
-	U16 size = 0, data_idx = 0, target = 0, source = 0, timer = 0;
-	bool ack = 0, Rx_msg = 0, collision_detection = 0, first_byte = 0, noop = 0;
-
-	U64 tracking = 0;
-
+	U32 samples_to_first_center_of_first_data_bit = U32(1.5 * double(mSampleRateHz) / double(mSettings->mBitRate)); //advance 1.5 bit
+	U16 bit_counter = 0;    //counter from 0 to 8 - detects the end of a data byte
+	U8 data_byte = 0;       //data_byte entered to crc function
+	U16 size = 0, data_idx = 0, target = 0, source = 0;
+	bool ack = 0, Rx_msg = 0, collision_detection = 0, first_byte = 0, noop = 0;    //bool signals
+	U64 tracking = 0;           //keeps the start and the end of ack timeout period
 	U32 state = 0;							//initialization of state machine
 	//Initial Position of the first bit -- falling edge -- beginning of the start bit
 	mTx->AdvanceToNextEdge();
-	U32 timeout = 20 * (1000000 / mSettings->mBitRate);
+	U32 timeout = 20 * (1000000 / mSettings->mBitRate); //Timeout = 2*10*(1sec/baudrate)
 
 	//used for aknowledgement time tracking
 
@@ -73,7 +71,7 @@ void LuosAnalyzer::WorkerThread()
 	{
 		for ( ; ; )
 		{
-			CheckIfThreadShouldExit();
+			CheckIfThreadShouldExit();      //kill thread in case of infinite loop
 			U64 label = 0, data = 0;													//frames' info
 			U64 value = 0, value_byte = 0;								//data & crc calculation helpers
 			U8 dd = 0;																			//
@@ -93,10 +91,9 @@ void LuosAnalyzer::WorkerThread()
 				//if there's no edge for the duration of timeout -> reset
 				if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
 					state = WAIT;
-					mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mTxChannel);
-					mTx->AdvanceToNextEdge();
+					mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mTxChannel);    //error
+					mTx->AdvanceToNextEdge();   //skip no data period
 					noop = 1;               //no frame will be added
-					data_idx = 0;
 					break;
 				}
 				starting_sample += samples_per_bit; 	//skip the start bit
@@ -104,9 +101,9 @@ void LuosAnalyzer::WorkerThread()
 				{
 					//if there's no edge for the duration of timeout -> reset
 					if (!mTx->WouldAdvancingCauseTransition(timeout * samples_per_bit)) {
-						transmission_error = 1;
-						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mTxChannel);
-						mTx->AdvanceToNextEdge();
+						transmission_error = 1; //this variable will break this state
+						mResults->AddMarker(mTx->GetSampleNumber(), AnalyzerResults::ErrorX, mSettings->mTxChannel); //error
+						mTx->AdvanceToNextEdge();   //skip the no data period
 						break;
 					}
 					//let's put a dot exactly where we sample this bit:
@@ -686,7 +683,7 @@ void LuosAnalyzer::WorkerThread()
 			{
 				while (1)
 				{
-					CheckIfThreadShouldExit();
+					CheckIfThreadShouldExit();      //kill thread in case of infinite loop
 					bit_counter = 0;
 					//Case where CRC was not good - in wait state until it finds a new msg - timeout period without a new msg
 					if (transmission_error)
@@ -732,7 +729,7 @@ void LuosAnalyzer::WorkerThread()
 
 		for ( ; ; )
 		{
-			CheckIfThreadShouldExit();
+			CheckIfThreadShouldExit();      //kill thread in case of infinite loop
 			U64 label = 0, data = 0, received_data = 0;							//frames' info
 			U64 value = 0, value_byte = 0;										//data & crc calculation helpers
 			U8 dd = 0, dd2 = 0;																		//
