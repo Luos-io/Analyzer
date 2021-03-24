@@ -73,6 +73,7 @@ void LuosAnalyzer::WorkerThread()
 	{
 		for ( ; ; )
 		{
+			CheckIfThreadShouldExit();
 			U64 label = 0, data = 0;													//frames' info
 			U64 value = 0, value_byte = 0;								//data & crc calculation helpers
 			U8 dd = 0;																			//
@@ -685,6 +686,7 @@ void LuosAnalyzer::WorkerThread()
 			{
 				while (1)
 				{
+					CheckIfThreadShouldExit();
 					bit_counter = 0;
 					//Case where CRC was not good - in wait state until it finds a new msg - timeout period without a new msg
 					if (transmission_error)
@@ -730,6 +732,7 @@ void LuosAnalyzer::WorkerThread()
 
 		for ( ; ; )
 		{
+			CheckIfThreadShouldExit();
 			U64 label = 0, data = 0, received_data = 0;							//frames' info
 			U64 value = 0, value_byte = 0;										//data & crc calculation helpers
 			U8 dd = 0, dd2 = 0;																		//
@@ -1829,6 +1832,7 @@ void LuosAnalyzer::WorkerThread()
 			{
 				while (1)
 				{
+					CheckIfThreadShouldExit();
 					if (transmission_error)			//This is the handling of a transmission_error in case CRC is not good! Wait until we find a no data timeout period
 					{
 						if (Rx_msg)
