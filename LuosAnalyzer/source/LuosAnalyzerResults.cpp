@@ -23,7 +23,7 @@ LuosAnalyzerResults::~LuosAnalyzerResults()
 {
 }
 
-std::stringstream DataTranslation(U64 frame_data1, U64 frame_data2, DisplayBase display_base);
+std::string DataTranslation(U64 frame_data1, U64 frame_data2, DisplayBase display_base);
 
 void LuosAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel, DisplayBase display_base )
 {
@@ -32,7 +32,7 @@ void LuosAnalyzerResults::GenerateBubbleText( U64 frame_index, Channel& channel,
 
 	Frame frame = GetFrame( frame_index );
 
-	ss = DataTranslation(frame.mData1, frame.mData2, display_base);
+	ss << DataTranslation(frame.mData1, frame.mData2, display_base);
 
 	AddResultString( ss.str().c_str() );
 }
@@ -77,24 +77,23 @@ void LuosAnalyzerResults::GenerateFrameTabularText( U64 frame_index, DisplayBase
 
 	ClearTabularText();
 
-	ss = DataTranslation(frame.mData1, frame.mData2, display_base);
+	ss << DataTranslation(frame.mData1, frame.mData2, display_base);
 
 	AddTabularText( ss.str().c_str() );
 
 #endif
 }
 
-
-std::stringstream DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_base) {
-
-	std::stringstream ss;
-	char number_str[128];
-	char number_str2[128];
+//function that translates the data to the desired display format
+std::string DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBase display_base) {
+	std::stringstream ss;   //returned string
+	char number_str[128];   //string from label
+	char number_str2[128];  //string from data
 	U32 bit_num=8;
 
 	AnalyzerHelpers::GetNumberString( frame_data1, ASCII, 8, number_str, 128 );
 
-	switch (frame_data1) {
+	switch (frame_data1) {  //choose how many bits will represent its value
 		case 'PROT': {
 			bit_num = 4;
 			break;
@@ -446,8 +445,8 @@ std::stringstream DataTranslation( U64 frame_data1, U64 frame_data2,  DisplayBas
 	else {
 	ss << "DATA[" << frame_data1 << "] = " << number_str2;
 	}
-
-	return ss;
+    return ss.str();
+	
 }
 
 void LuosAnalyzerResults::GeneratePacketTabularText( U64 packet_id, DisplayBase display_base )
