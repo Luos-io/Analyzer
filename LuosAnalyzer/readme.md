@@ -2,7 +2,7 @@
 
 # Luos Analyzer Project
 
-This folder contains the source code for modifying, building and installing your Luos Analyzer. You can use these files for rebuilding the Luos Analyzer, though it is necessary only if you want to make changes in the functioning of the analyzer. Otherwise, you can use the precompiled executables outside of this folder.
+This folder contains the source code for modifying, building and installing your Luos Analyzer. You can use these files for rebuilding the Luos Analyzer, though it is necessary only if you want to make changes in its of the analyzer. Otherwise, you can use the precompiled executables outside of this folder.
 
 In order to compile the analyzer for Windows, build the visual studio project contained in the Visual Studio folder. For Linux and Mac OS, run the buld_analyzer.py. 
 
