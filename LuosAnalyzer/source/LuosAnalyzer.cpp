@@ -648,7 +648,6 @@ void LuosAnalyzer::WorkerThread()
 						data += value;
 					}
 					label = 'ACK';
-					timer++;
 					mTx->Advance(samples_per_bit);
 				}
 				state = WAIT;
@@ -1778,7 +1777,6 @@ void LuosAnalyzer::WorkerThread()
 								data += value;
 							}
 							label = 'ACK';
-							timer++;
 
 							mRx->Advance(samples_per_bit);
 						}
