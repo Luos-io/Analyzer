@@ -3,3 +3,5 @@
 # Analyzer
 
 Luos offers a Luos Protocol Low Level Analyzer for Saleae Logic Applications, that can be useful for tracking the communication data and analyzing the Robus communication protocol, when using a Saleae Logic Analyzer.
+
+For installing Luos analyzer, include the path of the executable (exec folder), that correspond to the characteristics of your machine and the version of Logic app you use, in the custom low level analyzers tab, in the preferences menu of Logic software.
