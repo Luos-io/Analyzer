@@ -12,7 +12,7 @@ For further information on how to compile, debug and setup the analyzer visit th
 
 1. Open the Logic software.
 2. In Visual Studio, open the Debug menu and select "attach to process"
-3. In the available processes search box, search for Logic. You should see 5 results for Logic.exe. (We use the electron framework for Logic 2, which creates a handful of processes)
+3. In the available processes search box, search for Logic. You should see 5 results for Logic.exe. (Saleae uses the electron framework for Logic 2, which creates a handful of processes)
 4. To figure out which one to use, open Task Manager (right click the task bar and select "task manager")
 5. Expand the entry for Logic (5) in the Processes tab.
 6. Locate the entry that is using the most ram, and right click it and select "go to details". Note the process ID you see there.
