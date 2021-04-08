@@ -58,7 +58,7 @@ void LuosAnalyzer::WorkerThread()
 	U32 state = 0;							//initialization of state machine
 	//Initial Position of the first bit -- falling edge -- beginning of the start bit
 	mTx->AdvanceToNextEdge();
-	U32 timeout = 20 * (1000000 / mSettings->mBitRate); //Timeout = 2*10*(1sec/baudrate)
+	U32 timeout = 20; //Timeout = 2*10*(1sec/baudrate)
 
 	//used for aknowledgement time tracking
 
